@@ -26,12 +26,18 @@ THE SOFTWARE.
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
+	"mime/multipart"
 	"net/http"
+	"strconv"
 	"sync/atomic"
+	"time"
 
 	"golang.org/x/net/websocket"
 )
@@ -111,8 +117,8 @@ func getMessage(ws *websocket.Conn) (m Message, err error) {
 
 var counter uint64
 
-func postMessage(ws *websocket.Conn, m Message) error {
-	m.Id = atomic.AddUint64(&counter, 1)
+func postMessage(ws *websocket.Conn, m map[string]string) error {
+	m["id"] = strconv.FormatUint(atomic.AddUint64(&counter, 1), 10)
 	return websocket.JSON.Send(ws, m)
 }
 
@@ -130,4 +136,47 @@ func slackConnect(token string) (*websocket.Conn, string) {
 	}
 
 	return ws, id
+}
+
+func Upload(file []byte, channel string) {
+
+	filename := filenames[rand.Intn(len(filenames))]
+
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+
+	fw, err := w.CreateFormFile("file", filename)
+	if err != nil {
+		log.Fatalf("error creating form file: %s", err)
+	}
+
+	if _, err := io.Copy(fw, bytes.NewReader(file)); err != nil {
+		log.Fatalf("error copying file into form buffer: %s", err)
+	}
+
+	w.WriteField("title", filename)
+	w.WriteField("channels", channel)
+	w.WriteField("token", token)
+
+	w.Close()
+
+	client := &http.Client{
+		Timeout: time.Second * 20,
+	}
+	request, err := http.NewRequest(http.MethodPost, "https://slack.com/api/files.upload", &b)
+	if err != nil {
+		log.Fatalf("error creating request: %s", err)
+	}
+
+	request.Header.Set("Content-Type", w.FormDataContentType())
+
+	response, err := client.Do(request)
+	if err != nil {
+		log.Fatalf("error doing request: %s", err)
+	}
+
+	if response.StatusCode != http.StatusOK {
+		log.Fatalf("slack error: %s", response.Status)
+	}
+	return
 }
