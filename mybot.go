@@ -14,7 +14,7 @@ var token string
 var chrisify string
 var haar string
 var faces_dir string
-var base_path = "/var/www/chrisbot.zikes.me/"
+var base_path = "/home/ubuntu/tmp/"
 var base_url = "http://chrisbot.zikes.me/"
 
 func main() {
@@ -47,12 +47,12 @@ func main() {
 				file := SaveTempFile(GetFile(m.File))
 				chrisd := Chrisify(faces_dir, file)
 				// log.Printf("Uploading to %s", channel)
-				// Upload(chrisd, channel)
-				url := SaveFile(chrisd)
-				postMessage(ws, map[string]string{
-					"type":    "message",
-					"text":    url,
-					"channel": channel,
+				Upload(chrisd, channel)
+				//url := SaveFile(chrisd)
+				//postMessage(ws, map[string]string{
+				//	"type":    "message",
+				//	"text":    url,
+				//	"channel": channel,
 				})
 
 				defer os.Remove(file)
