@@ -81,8 +81,8 @@ func GetFile(file File) []byte {
 	return body
 }
 
-func Chrisify(file string) []byte {
-	out, err := exec.Command(chrisify, "--haar", haar, file).Output()
+func Chrisify(faces_dir string, file string) []byte {
+	out, err := exec.Command(chrisify, "--haar", haar, "--faces", faces_dir, file).Output()
 	if err != nil {
 		log.Fatalf("couldn't chrisify: %s", err)
 	}
