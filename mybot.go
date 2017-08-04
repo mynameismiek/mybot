@@ -53,7 +53,7 @@ func main() {
 				//	"type":    "message",
 				//	"text":    url,
 				//	"channel": channel,
-				})
+				//})
 
 				defer os.Remove(file)
 			}(m)
