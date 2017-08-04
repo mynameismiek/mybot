@@ -13,18 +13,20 @@ import (
 var token string
 var chrisify string
 var haar string
+var faces_dir string
 var base_path = "/var/www/chrisbot.zikes.me/"
 var base_url = "http://chrisbot.zikes.me/"
 
 func main() {
-	if len(os.Args) != 4 {
-		fmt.Fprintf(os.Stderr, "usage: slackbot slack-bot-token /path/to/chrisify /path/to/haar\n")
+	if len(os.Args) != 5 {
+		fmt.Fprintf(os.Stderr, "usage: slackbot slack-bot-token /path/to/chrisify /path/to/haar /path/to/faces\n")
 		os.Exit(1)
 	}
 
 	token = os.Args[1]
 	chrisify = os.Args[2]
 	haar = os.Args[3]
+	faces_dir = os.Args[4]
 
 	// start a websocket-based Real Time API session
 	ws, id := slackConnect(token)
@@ -43,7 +45,7 @@ func main() {
 				var channel string
 				json.Unmarshal(m.Channel, &channel)
 				file := SaveTempFile(GetFile(m.File))
-				chrisd := Chrisify(file)
+				chrisd := Chrisify(faces_dir, file)
 				// log.Printf("Uploading to %s", channel)
 				// Upload(chrisd, channel)
 				url := SaveFile(chrisd)
